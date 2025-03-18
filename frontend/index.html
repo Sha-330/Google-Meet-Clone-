@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Google Meet Clone</title>
+  <style>
+    /* CSS Styles */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      background-color: #202124;
+      color: white;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .logo {
+      font-size: 24px;
+      font-weight: bold;
+      color: #fff;
+    }
+
+    .logo span {
+      color: #4285f4;
+    }
+
+    .home-screen, .room-screen {
+      background-color: #303134;
+      border-radius: 8px;
+      padding: 30px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .home-screen {
+      max-width: 500px;
+      margin: 100px auto;
+      text-align: center;
+    }
+
+    .room-screen {
+      display: none;
+    }
+
+    h1 {
+      margin-bottom: 20px;
+      color: #fff;
+    }
+
+    .button {
+      background-color: #4285f4;
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+      margin: 0 10px;
+      transition: background-color 0.3s;
+    }
+
+    .button:hover {
+      background-color: #356ac3;
+    }
+
+    .button.secondary {
+      background-color: #ea4335;
+    }
+
+    .button.secondary:hover {
+      background-color: #c5372c;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: bold;
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 12px;
+      border-radius: 4px;
+      border: 1px solid #5f6368;
+      background-color: #202124;
+      color: white;
+      font-size: 16px;
+    }
+
+    .video-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 20px;
+      margin-top: 20px;
+    }
+
+    .video-container {
+      position: relative;
+      padding-bottom: 56.25%; /* 16:9 aspect ratio */
+      height: 0;
+      overflow: hidden;
+      background-color: #3c4043;
+      border-radius: 8px;
+    }
+
+    .video-container video {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 8px;
+    }
+
+    .user-name {
+      position: absolute;
+      bottom: 10px;
+      left: 10px;
+      background-color: rgba(0, 0, 0, 0.5);
+      padding: 5px 10px;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+
+    .controls {
+      display: flex;
+      justify-content: center;
+      margin-top: 20px;
+      padding: 15px 0;
+      background-color: #202124;
+      border-radius: 8px;
+    }
+
+    .control-button {
+      background-color: #3c4043;
+      color: white;
+      border: none;
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      margin: 0 10px;
+      cursor: pointer;
+      font-size: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background-color 0.3s;
+    }
+
+    .control-button:hover {
+      background-color: #5f6368;
+    }
+
+    .control-button.muted, .control-button.video-off, .control-button.leave {
+      background-color: #ea4335;
+    }
+
+    .room-link {
+      margin-top: 20px;
+      padding: 15px;
+      background-color: #3c4043;
+      border-radius: 4px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .room-link input {
+      flex-grow: 1;
+      background: none;
+      border: none;
+      color: white;
+      font-size: 16px;
+      margin-right: 10px;
+    }
+
+    .copy-button {
+      background: none;
+      border: none;
+      color: #8ab4f8;
+      cursor: pointer;
+      font-size: 16px;
+    }
+
+    .notification {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 15px 20px;
+      background-color: #4285f4;
+      color: white;
+      border-radius: 4px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      transform: translateX(200%);
+      transition: transform 0.3s ease-out;
+    }
+
+    .notification.show {
+      transform: translateX(0);
+    }
+
+    /* New styles to replace inline styles */
+    .meeting-form-group {
+      margin-top: 20px;
+      text-align: left;
+    }
+
+    .meeting-input-container {
+      display: flex;
+    }
+
+    .join-button {
+      margin-left: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="logo">Google <span>Meet</span> Clone</div>
+    </div>
+
+    <!-- Home Screen (Join/Create Meeting) -->
+    <div class="home-screen" id="homeScreen">
+      <h1>Video Meetings</h1>
+      <div class="buttons">
+        <button id="createMeetingBtn" class="button">Create Meeting</button>
+        <div class="form-group meeting-form-group">
+          <label for="roomInput">Meeting Code</label>
+          <div class="meeting-input-container">
+            <input type="text" id="roomInput" placeholder="Enter meeting code">
+            <button id="joinMeetingBtn" class="button join-button">Join</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Room Screen (Video Chat) -->
+    <div class="room-screen" id="roomScreen">
+      <div class="room-link">
+        <input type="text" id="roomLink" readonly>
+        <button id="copyLinkBtn" class="copy-button">Copy</button>
+      </div>
+
+      <div class="video-grid" id="videoGrid"></div>
+
+      <div class="controls">
+        <button id="toggleMicBtn" class="control-button">🎤</button>
+        <button id="toggleVideoBtn" class="control-button">📹</button>
+        <button id="leaveBtn" class="control-button leave">❌</button>
+      </div>
+    </div>
+
+    <div class="notification" id="notification"></div>
+  </div>
+
+  <!-- Socket.io Client -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.min.js"></script>
+
+  <script>
+    // DOM Elements
+    const homeScreen = document.getElementById('homeScreen');
+    const roomScreen = document.getElementById('roomScreen');
+    const createMeetingBtn = document.getElementById('createMeetingBtn');
+    const joinMeetingBtn = document.getElementById('joinMeetingBtn');
+    const roomInput = document.getElementById('roomInput');
+    const roomLink = document.getElementById('roomLink');
+    const copyLinkBtn = document.getElementById('copyLinkBtn');
+    const videoGrid = document.getElementById('videoGrid');
+    const toggleMicBtn = document.getElementById('toggleMicBtn');
+    const toggleVideoBtn = document.getElementById('toggleVideoBtn');
+    const leaveBtn = document.getElementById('leaveBtn');
+    const notification = document.getElementById('notification');
+
+    // Global variables
+    let socket;
+    let localStream;
+    let roomId;
+    let userId = generateUserId();
+    let peers = {};
+    let isMuted = false;
+    let isVideoOff = false;
+
+    // Server URL (adjust if needed)
+    const SERVER_URL = 'http://localhost:3000';
+
+    // Initialize socket connection
+    function initializeSocket() {
+      socket = io(SERVER_URL);
+
+      // Socket event handlers
+      socket.on('connect', () => {
+        console.log('Connected to server with socket ID:', socket.id);
+      });
+
+      socket.on('user-connected', (newUserId) => {
+        console.log('New user connected:', newUserId);
+        showNotification(`New user joined the meeting`);
+        connectToNewUser(newUserId);
+      });
+
+      socket.on('user-disconnected', (userId) => {
+        console.log('User disconnected:', userId);
+        if (peers[userId]) {
+          peers[userId].close();
+          delete peers[userId];
+          removeVideoElement(userId);
+        }
+      });
+
+      socket.on('offer', async ({ offer, from }) => {
+        console.log('Received offer from:', from);
+        const peerConnection = createPeerConnection(from);
+        await peerConnection.setRemoteDescription(new RTCSessionDescription(offer));
+        const answer = await peerConnection.createAnswer();
+        await peerConnection.setLocalDescription(answer);
+        socket.emit('answer', { answer, to: from });
+      });
+
+      socket.on('answer', async ({ answer, from }) => {
+        console.log('Received answer from:', from);
+        const peerConnection = peers[from];
+        if (peerConnection) {
+          await peerConnection.setRemoteDescription(new RTCSessionDescription(answer));
+        }
+      });
+
+      socket.on('ice-candidate', async ({ candidate, from }) => {
+        console.log('Received ICE candidate from:', from);
+        const peerConnection = peers[from];
+        if (peerConnection) {
+          await peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
+        }
+      });
+
+      socket.on('error', (error) => {
+        console.error('Socket error:', error);
+        showNotification(error.message, true);
+      });
+    }
+
+    // Create a new meeting
+    async function createMeeting() {
+      try {
+        const response = await fetch(`${SERVER_URL}/api/rooms`, {
+          method: 'POST'
+        });
+        const data = await response.json();
+        roomId = data.roomId;
+        joinRoom(roomId);
+      } catch (error) {
+        console.error('Error creating meeting:', error);
+        showNotification('Failed to create meeting', true);
+      }
+    }
+
+    // Join an existing room
+    async function joinRoom(roomIdToJoin) {
+      try {
+        roomId = roomIdToJoin;
+        
+        // Get user's media
+        await setupLocalMedia();
+        
+        // Update room link input
+        roomLink.value = `${window.location.origin}?room=${roomId}`;
+        
+        // Join the room via socket
+        socket.emit('join-room', { roomId, userId });
+        
+        // Switch to room screen
+        homeScreen.style.display = 'none';
+        roomScreen.style.display = 'block';
+        
+        // Update URL without reloading
+        window.history.pushState({}, '', `?room=${roomId}`);
+      } catch (error) {
+        console.error('Error joining room:', error);
+        showNotification('Failed to join meeting', true);
+      }
+    }
+
+    // Setup local media stream
+    async function setupLocalMedia() {
+      try {
+        localStream = await navigator.mediaDevices.getUserMedia({
+          video: true,
+          audio: true
+        });
+        
+        // Create local video element
+        createVideoElement('local', localStream, 'You');
+        
+        return localStream;
+      } catch (error) {
+        console.error('Error accessing media devices:', error);
+        showNotification('Cannot access camera or microphone', true);
+        throw error;
+      }
+    }
+
+    // Create a video element
+    function createVideoElement(id, stream, username = 'User') {
+      const videoContainer = document.createElement('div');
+      videoContainer.className = 'video-container';
+      videoContainer.id = `container-${id}`;
+      
+      const video = document.createElement('video');
+      video.srcObject = stream;
+      video.id = `video-${id}`;
+      video.autoplay = true;
+      video.playsInline = true;
+      
+      if (id === 'local') {
+        video.muted = true;
+      }
+      
+      const userLabel = document.createElement('div');
+      userLabel.className = 'user-name';
+      userLabel.textContent = username;
+      
+      videoContainer.appendChild(video);
+      videoContainer.appendChild(userLabel);
+      videoGrid.appendChild(videoContainer);
+      
+      return videoContainer;
+    }
+
+    // Remove video element
+    function removeVideoElement(id) {
+      const videoContainer = document.getElementById(`container-${id}`);
+      if (videoContainer) {
+        videoContainer.remove();
+      }
+    }
+
+    // Create peer connection
+    function createPeerConnection(userId) {
+      const peerConnection = new RTCPeerConnection({
+        iceServers: [
+          { urls: 'stun:stun.l.google.com:19302' },
+          { urls: 'stun:stun1.l.google.com:19302' }
+        ]
+      });
+      
+      // Add local tracks to the connection
+      localStream.getTracks().forEach(track => {
+        peerConnection.addTrack(track, localStream);
+      });
+      
+      // Handle ICE candidates
+      peerConnection.onicecandidate = (event) => {
+        if (event.candidate) {
+          socket.emit('ice-candidate', {
+            candidate: event.candidate,
+            to: userId
+          });
+        }
+      };
+      
+      // Handle incoming streams
+      peerConnection.ontrack = (event) => {
+        const stream = event.streams[0];
+        if (!document.getElementById(`video-${userId}`)) {
+          createVideoElement(userId, stream);
+        }
+      };
+      
+      peers[userId] = peerConnection;
+      return peerConnection;
+    }
+
+    // Connect to a new user
+    async function connectToNewUser(userId) {
+      const peerConnection = createPeerConnection(userId);
+      
+      try {
+        const offer = await peerConnection.createOffer();
+        await peerConnection.setLocalDescription(offer);
+        socket.emit('offer', {
+          offer,
+          to: userId
+        });
+      } catch (error) {
+        console.error('Error creating offer:', error);
+      }
+    }
+
+    // Toggle microphone
+    function toggleMicrophone() {
+      if (localStream) {
+        const audioTrack = localStream.getAudioTracks()[0];
+        if (audioTrack) {
+          isMuted = !isMuted;
+          audioTrack.enabled = !isMuted;
+          toggleMicBtn.textContent = isMuted ? '🔇' : '🎤';
+          toggleMicBtn.classList.toggle('muted', isMuted);
+        }
+      }
+    }
+
+    // Toggle video
+    function toggleVideo() {
+      if (localStream) {
+        const videoTrack = localStream.getVideoTracks()[0];
+        if (videoTrack) {
+          isVideoOff = !isVideoOff;
+          videoTrack.enabled = !isVideoOff;
+          toggleVideoBtn.textContent = isVideoOff ? '🚫' : '📹';
+          toggleVideoBtn.classList.toggle('video-off', isVideoOff);
+        }
+      }
+    }
+
+    // Leave meeting
+    function leaveMeeting() {
+      // Close all peer connections
+      Object.values(peers).forEach(peer => peer.close());
+      peers = {};
+      
+      // Stop local stream
+      if (localStream) {
+        localStream.getTracks().forEach(track => track.stop());
+      }
+      
+      // Clear video grid
+      videoGrid.innerHTML = '';
+      
+      // Return to home screen
+      roomScreen.style.display = 'none';
+      homeScreen.style.display = 'block';
+      
+      // Update URL
+      window.history.pushState({}, '', window.location.pathname);
+      
+      // Reset variables
+      roomId = null;
+      isMuted = false;
+      isVideoOff = false;
+      toggleMicBtn.textContent = '🎤';
+      toggleVideoBtn.textContent = '📹';
+      toggleMicBtn.classList.remove('muted');
+      toggleVideoBtn.classList.remove('video-off');
+    }
+
+    // Show notification
+    function showNotification(message, isError = false) {
+      notification.textContent = message;
+      notification.style.backgroundColor = isError ? '#ea4335' : '#4285f4';
+      notification.classList.add('show');
+      
+      setTimeout(() => {
+        notification.classList.remove('show');
+      }, 3000);
+    }
+
+    // Generate random user ID
+    function generateUserId() {
+      return Math.random().toString(36).substring(2, 15);
+    }
+
+    // Copy room link to clipboard
+    function copyRoomLink() {
+      roomLink.select();
+      document.execCommand('copy');
+      showNotification('Meeting link copied to clipboard');
+    }
+
+    // Check if URL has room ID
+    function checkUrlForRoom() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const roomParam = urlParams.get('room');
+      
+      if (roomParam) {
+        initializeSocket();
+        joinRoom(roomParam);
+      }
+    }
+
+    // Event listeners
+    createMeetingBtn.addEventListener('click', () => {
+      initializeSocket();
+      createMeeting();
+    });
+
+    joinMeetingBtn.addEventListener('click', () => {
+      const roomIdToJoin = roomInput.value.trim();
+      if (roomIdToJoin) {
+        initializeSocket();
+        joinRoom(roomIdToJoin);
+      } else {
+        showNotification('Please enter a meeting code', true);
+      }
+    });
+
+    copyLinkBtn.addEventListener('click', copyRoomLink);
+    toggleMicBtn.addEventListener('click', toggleMicrophone);
+    toggleVideoBtn.addEventListener('click', toggleVideo);
+    leaveBtn.addEventListener('click', leaveMeeting);
+
+    // Check URL for room ID on page load
+    window.addEventListener('load', checkUrlForRoom);
+  </script>
+</body>
+</html>
